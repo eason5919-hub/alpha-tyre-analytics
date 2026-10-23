@@ -1167,7 +1167,7 @@ function restoreSizeReturn(origin) {
     const prefix=id.slice(0,-6);
     for(const suffix of ["Start","End"]) {
       $(prefix+suffix).min="1900-01-01";
-      $(prefix+suffix).max=prefix==="brandSize" ? today : nextMonthEnd;
+      $(prefix+suffix).max=nextMonthEnd;
       $(prefix+suffix).value=suffix==="Start" ? today.slice(0,7)+"-01" : today;
     }
   }
@@ -1189,7 +1189,7 @@ function restoreSizeReturn(origin) {
   }
   $("salespersonStart").value=today.slice(0,7)+"-01";
   $("salespersonEnd").value=today;
-  for (const id of ["topSizePeriod","brandPeriod","customerPeriod","salespersonPeriod"]) {
+  for (const id of ["topSizePeriod","brandPeriod","brandSizePeriod","customerPeriod","salespersonPeriod"]) {
     $(id).insertAdjacentHTML("beforeend", '<option value="next_month">Next Month</option>');
   }
   const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
