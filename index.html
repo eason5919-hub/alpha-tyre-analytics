@@ -1319,6 +1319,28 @@ function restoreSizeReturn(origin) {
     view("search");
     window.scrollTo(0,0);
   }
+  function clearDateRangeResults(prefix) {
+    const tables = {topSize:["topSizesTable"], brand:["brandsTable"], brandSize:["brandSizeTable"],
+      customer:["customersTable","customerDetailTable"], salesperson:["salespeopleTable","salespersonDetailTable"],
+      brandBreakdown:["brandBreakdown"]};
+    for (const id of tables[prefix] || []) $(id).replaceChildren();
+    if (prefix === "customer" || prefix === "salesperson") {
+      const customer = prefix === "customer", card = customer ? "topCustomer" : "topSalesperson";
+      $(card + "Name").textContent = "-";
+      $(card + "Sold").textContent = "0 PCS";
+      $(card + "Sizes").textContent = "0";
+      const label = {brand_size:"Brand + Size", size:"Size Only", brand:"Brand Only"}[$(prefix + "Breakdown").value] || "Brand + Size";
+      $(prefix + "DetailTitle").textContent = `${customer ? "Customer" : "Salesperson"} ${label}`;
+    }
+    if (prefix === "salesperson") $("salespersonAttributionNotice").classList.add("hidden");
+    if (prefix === "brandBreakdown") $("brandBreakdownNotice").classList.add("hidden");
+    if (prefix === "customer") chosenCustomer = "";
+    if (prefix === "salesperson") chosenSalesperson = "";
+    const key = {topSize:"top-sizes", brand:"brand-sales", brandSize:"full",
+      customer:"customer-performance", salesperson:"salesperson-performance"}[prefix];
+    if (key) delete exportRows[key];
+  }
+
   function validateDateRange(prefix, custom) {
     const start = $(prefix + "Start"), end = $(prefix + "End");
     end.setCustomValidity("");
@@ -1342,6 +1364,7 @@ function restoreSizeReturn(origin) {
       notice.classList.toggle("hidden", !invalid);
     }
     if (invalid) {
+      clearDateRangeResults(prefix);
       const error = new Error("Select a valid date range");
       error.inlineRange = true;
       throw error;
@@ -1691,6 +1714,17 @@ function restoreSizeReturn(origin) {
       $("brandBreakdownCustom").value="true";
       guarded(sizeDetails);remember();
     });
+  }
+  // Clear invalid results while editing, before the date input loses focus.
+  for (const prefix of ["topSize","brand","brandSize","customer","salesperson","brandBreakdown"]) {
+    for (const suffix of ["Start","End"]) {
+      $(prefix + suffix).addEventListener("input", () => {
+        if (prefix === "brandBreakdown") $("brandBreakdownCustom").value = "true";
+        else $(prefix + "Period").value = "custom";
+        guarded(() => validateDateRange(prefix, true));
+        remember();
+      });
+    }
   }
   $("sizeBackBtn").addEventListener("click",()=>{
     if(!sizeReturn) return;
